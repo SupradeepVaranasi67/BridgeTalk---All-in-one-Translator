@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tourist Assistance System</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
+        .input-form { margin-bottom: 30px; }
+        .output-section h3 { color: #333; border-bottom: 2px solid #eee; padding-bottom: 5px; }
+        .question-list, .translated-list { list-style: none; padding: 0; }
+        .question-list li, .translated-list li { padding: 8px 0; border-bottom: 1px dotted #ddd; }
+        .translated-list li { font-weight: bold; color: #006400; }
+        .identified { background-color: #e6ffe6; padding: 10px; border-radius: 5px; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌍 Tourist Local Language Assistance System</h1>
+
+        <div class="input-form">
+            <p><strong>Step 1: Enter your Location</strong></p>
+            <form method="POST" action="/">
+                <input type="text" name="region_input" placeholder="e.g., 'Suncity Colony, Pune'" style="width: 70%; padding: 8px;" value="{{ region_input if region_input else '' }}">
+                <input type="submit" value="Analyze Location" style="padding: 8px 15px;">
+            </form>
+        </div>
+
+        {% if target_lang_name %}
+        <div class="identified">
+            ✅ **Local Language Identified:** {{ target_lang_name }}
+        </div>
+        {% endif %}
+
+        <div class="output-section">
+            <h3>Step 2: Pre-defined Questions (English)</h3>
+            <ul class="question-list">
+                {% for q in questions %}
+                <li>{{ loop.index }}. {{ q }}</li>
+                {% endfor %}
+            </ul>
+
+            {% if translated_phrases %}
+            <h3>Step 3: Translated Phrases ({{ target_lang_name }})</h3>
+            <ul class="translated-list">
+                {% for p in translated_phrases %}
+                <li>{{ loop.index }}. {{ p }}</li>
+                {% endfor %}
+            </ul>
+            {% elif region_input %}
+            <p style="color: red;">Could not perform translation. Check your `python_translator.py` or the determined language code.</p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
