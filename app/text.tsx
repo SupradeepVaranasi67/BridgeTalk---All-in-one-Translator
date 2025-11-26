@@ -113,7 +113,7 @@ export default function TextTranslateScreen() {
             ))}
           </Picker>
         </View>
-      </View>
+ 10=      </View>
       <TextInput style={[styles.input, { backgroundColor: inputBackgroundColor, color: textColor }]} placeholder="Enter text" placeholderTextColor="#888" value={input} onChangeText={setInput} multiline />
       <TouchableOpacity style={[styles.translateButton, { backgroundColor: primaryColor }]} onPress={handleTranslate} disabled={loading}>
         {loading ? <ActivityIndicator color="#fff" /> : <ThemedText style={styles.translateButtonText}>Translate</ThemedText>}

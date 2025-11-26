@@ -7,7 +7,7 @@ app = Flask(__name__)
 
 # The 5 Fixed English Questions
 ENGLISH_QUESTIONS = [
-    "Where is this hotel?",
+    "Is there a hotel nearby?",
     "Where will I find a bus stop nearby?",
     "Can you guide me the route to this local market shop?",
     "Where will I find a market with cheap rates for shopping?",

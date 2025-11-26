@@ -1,13 +1,14 @@
 
-import { StyleSheet, FlatList, TouchableOpacity, Platform, useWindowDimensions, View } from "react-native";
-import { router } from "expo-router";
 import { FontAwesome5 } from '@expo/vector-icons';
-import { ThemedView } from './components/themed-view';
+import { router } from "expo-router";
+import { FlatList, Platform, StyleSheet, TouchableOpacity, useWindowDimensions, View } from "react-native";
 import { ThemedText } from './components/themed-text';
+import { ThemedView } from './components/themed-view';
 import { useThemeColor } from './hooks/use-theme-color';
 
-const features: { name: string; icon: string; route: "/text" | "/ocr" | "/translator" | "/settings" }[] = [
+const features: { name: string; icon: string; route: "/text" | "/ocr" | "/translator" | "/settings" | "/speech" }[] = [
   { name: "Text Translation", icon: "language", route: "/text" },
+  { name: "Speech Translation", icon: "microphone", route: "/speech" },
   { name: "OCR Translation", icon: "camera", route: "/ocr" },
   { name: "My Translations", icon: "history", route: "/translator" },
   { name: "Settings", icon: "cog", route: "/settings" },
@@ -20,7 +21,7 @@ export default function Index() {
   const numColumns = width > 768 ? 4 : 2;
   const cardWidth = width > 768 ? 200 : (width / 2) - 30;
 
-  const renderItem = ({ item }: { item: { name: string; icon: string; route: "/text" | "/ocr" | "/translator" | "/settings" } }) => (
+  const renderItem = ({ item }: { item: { name: string; icon: string; route: "/text" | "/ocr" | "/translator" | "/settings" | "/speech" } }) => (
     <TouchableOpacity onPress={() => router.push(item.route)}>
       <ThemedView colorName="card" style={[styles.card, { width: cardWidth }]}> 
         <FontAwesome5 name={item.icon as any} size={40} color={iconColor} />
