@@ -1,23 +1,29 @@
-
-import React, { useState, useCallback } from 'react';
-import { FlatList, StyleSheet, TouchableOpacity, Alert, Platform } from 'react-native';
-import { getHistory, Translation } from './services/storage';
-import { useFocusEffect } from '@react-navigation/native';
+import { FontAwesome } from "@expo/vector-icons";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ThemedView } from './components/themed-view';
+import { useFocusEffect } from '@react-navigation/native';
+import * as Speech from 'expo-speech';
+import React, { useCallback, useState } from 'react';
+import { Alert, FlatList, Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { ThemedText } from './components/themed-text';
+import { ThemedView } from './components/themed-view';
+import { useThemeColor } from './hooks/use-theme-color';
+import { addToFavorites, getFavorites, getHistory, removeFromFavorites, removeFromHistory, Translation } from './services/storage';
 
 export default function TranslationHistoryScreen() {
   const [history, setHistory] = useState<Translation[]>([]);
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const iconColor = useThemeColor({}, 'text');
 
-  const loadHistory = async () => {
+  const loadData = async () => {
     const hist = await getHistory();
+    const favs = await getFavorites();
     setHistory(hist);
+    setFavorites(favs.map(f => f.id));
   };
 
   useFocusEffect(
     useCallback(() => {
-      loadHistory();
+      loadData();
     }, [])
   );
 
@@ -45,12 +51,48 @@ export default function TranslationHistoryScreen() {
     }
   };
 
-  const renderItem = ({ item }: { item: Translation }) => (
-    <ThemedView style={styles.itemContainer}>
-      <ThemedText style={styles.itemText}>{item.sourceText} -> {item.translatedText}</ThemedText>
-      <ThemedText style={styles.itemLang}>{item.sourceLang} -> {item.targetLang}</ThemedText>
-    </ThemedView>
-  );
+  const handleDelete = async (id: string) => {
+    await removeFromHistory(id);
+    setHistory(prev => prev.filter(item => item.id !== id));
+  };
+
+  const handleReplay = (text: string, lang: string) => {
+    Speech.speak(text, { language: lang });
+  };
+
+  const handleToggleFavorite = async (item: Translation) => {
+    if (favorites.includes(item.id)) {
+      await removeFromFavorites(item.id);
+      setFavorites(prev => prev.filter(id => id !== item.id));
+    } else {
+      await addToFavorites(item);
+      setFavorites(prev => [...prev, item.id]);
+    }
+  };
+
+  const renderItem = ({ item }: { item: Translation }) => {
+    const isFavorite = favorites.includes(item.id);
+
+    return (
+      <ThemedView style={styles.itemContainer}>
+        <View style={styles.textContainer}>
+          <ThemedText style={styles.itemText}>{item.sourceText} {'->'} {item.translatedText}</ThemedText>
+          <ThemedText style={styles.itemLang}>{item.sourceLang} {'->'} {item.targetLang}</ThemedText>
+        </View>
+        <View style={styles.actionsContainer}>
+          <TouchableOpacity onPress={() => handleReplay(item.translatedText, item.targetLang)} style={styles.actionButton}>
+            <FontAwesome name="volume-up" size={20} color={iconColor} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => handleToggleFavorite(item)} style={styles.actionButton}>
+            <FontAwesome name={isFavorite ? "heart" : "heart-o"} size={20} color={isFavorite ? "#ff4c4c" : iconColor} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => handleDelete(item.id)} style={styles.actionButton}>
+            <FontAwesome name="trash" size={20} color="#ff4c4c" />
+          </TouchableOpacity>
+        </View>
+      </ThemedView>
+    );
+  };
 
   return (
     <ThemedView style={styles.container}>
@@ -76,9 +118,16 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     marginHorizontal: 16,
     borderRadius: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(150, 150, 150, 0.1)', // Slight background for separation
   },
+  textContainer: { flex: 1, marginRight: 10 },
   itemText: { fontSize: 16 },
-  itemLang: { fontSize: 12, marginTop: 5 },
+  itemLang: { fontSize: 12, marginTop: 5, opacity: 0.7 },
+  actionsContainer: { flexDirection: 'row', alignItems: 'center' },
+  actionButton: { padding: 8, marginLeft: 5 },
   emptyText: { textAlign: 'center', marginTop: 50, fontSize: 16 },
   clearButton: {
     backgroundColor: '#ff4c4c',

@@ -2,12 +2,14 @@
 import { Picker } from "@react-native-picker/picker";
 import * as ImagePicker from "expo-image-picker";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Button, Image, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Button, Image, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { recognizeTextFromImage } from "../utils/ocr";
 import { ThemedText } from "./components/themed-text";
 import { ThemedView } from "./components/themed-view";
 import { useThemeColor } from "./hooks/use-theme-color";
 import { getSupportedLanguages, translateText } from "./services/engines/google";
+
+import { useThemedAlert } from "./hooks/use-themed-alert";
 
 export default function OcrTranslateScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -24,6 +26,8 @@ export default function OcrTranslateScreen() {
   const cardColor = useThemeColor({}, 'card');
   const inputBackgroundColor = useThemeColor({}, 'input');
 
+  const { showAlert, themedAlertElement } = useThemedAlert();
+
   useEffect(() => {
     async function loadLanguages() {
       try {
@@ -39,6 +43,28 @@ export default function OcrTranslateScreen() {
   const pickImage = async () => {
     const res = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!res.canceled) {
+      setImageUri(res.assets[0].uri);
+      setRecognizedText("");
+      setTranslatedText("");
+    }
+  };
+
+  const takePhoto = async () => {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+
+    if (permissionResult.granted === false) {
+      showAlert("Permission Required", "Permission to access camera is required!");
+      return;
+    }
+
+    const res = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
       quality: 1,
     });
 
@@ -70,7 +96,7 @@ export default function OcrTranslateScreen() {
       const result = await translateText(recognizedText, targetLang);
       setTranslatedText(result);
     } catch (err) {
-      Alert.alert("Error", "Translation failed.");
+      showAlert("Error", "Translation failed.");
     } finally {
       setTranslating(false);
     }
@@ -78,8 +104,17 @@ export default function OcrTranslateScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      {themedAlertElement}
       <ScrollView contentContainerStyle={styles.contentContainer}>
-        <Button title="Pick Image" onPress={pickImage} color={primaryColor} />
+        <View style={styles.imageActions}>
+          <View style={styles.buttonWrapper}>
+            <Button title="Pick Image" onPress={pickImage} color={primaryColor} />
+          </View>
+          <View style={styles.buttonSpacer} />
+          <View style={styles.buttonWrapper}>
+            <Button title="Take Photo" onPress={takePhoto} color={primaryColor} />
+          </View>
+        </View>
 
         {imageUri && (
           <Image
@@ -107,14 +142,15 @@ export default function OcrTranslateScreen() {
             <View style={styles.separator} />
             
             <ThemedText style={styles.label}>Translate to:</ThemedText>
-            <View style={[styles.pickerWrapper, { backgroundColor: inputBackgroundColor }]}>
+            <View style={[styles.pickerWrapper, { backgroundColor: inputBackgroundColor, overflow: 'hidden' }]}>
               <Picker
                 selectedValue={targetLang}
                 onValueChange={(val) => setTargetLang(val)}
-                style={{ color: textColor }}
+                style={{ color: textColor, backgroundColor: 'transparent' }}
+                dropdownIconColor={textColor}
               >
                 {languages.map((lang) => (
-                  <Picker.Item key={lang.language} label={lang.name} value={lang.language} />
+                  <Picker.Item key={lang.language} label={lang.name} value={lang.language} color={textColor} />
                 ))}
               </Picker>
             </View>
@@ -156,4 +192,7 @@ const styles = StyleSheet.create({
   pickerWrapper: { borderRadius: 8, overflow: 'hidden', marginBottom: 15 },
   translateButton: { padding: 12, borderRadius: 8, alignItems: 'center' },
   translateButtonText: { color: '#fff', fontWeight: 'bold' },
+  imageActions: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
+  buttonWrapper: { flex: 1 },
+  buttonSpacer: { width: 10 },
 });

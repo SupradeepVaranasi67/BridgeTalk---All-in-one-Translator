@@ -1,8 +1,8 @@
 
+import { DarkTheme, DefaultTheme, ThemeProvider as NavThemeProvider } from "@react-navigation/native";
 import { Stack } from "expo-router";
-import { ThemeProvider as NavThemeProvider, DarkTheme, DefaultTheme } from "@react-navigation/native";
-import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import { Colors } from "./constants/theme";
+import { ThemeProvider, useTheme } from "./context/ThemeContext";
 
 function RootLayoutNav() {
   const { colorScheme } = useTheme();
@@ -26,7 +26,8 @@ function RootLayoutNav() {
         <Stack.Screen name="speech" options={{ title: "Speech Translator" }} />
         <Stack.Screen name="ocr" options={{ title: "Image Translator" }} />
         <Stack.Screen name="settings" options={{ title: "Settings" }} />
-        <Stack.Screen name="translator" options={{ title: "My Translations" }} />
+        <Stack.Screen name="translator" options={{ title: "History" }} />
+        <Stack.Screen name="favorites" options={{ title: "Favorites" }} />
       </Stack>
     </NavThemeProvider>
   );

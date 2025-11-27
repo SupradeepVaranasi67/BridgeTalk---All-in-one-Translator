@@ -33,6 +33,16 @@ export const addToHistory = async (translation: Translation): Promise<void> => {
   }
 };
 
+export const removeFromHistory = async (translationId: string): Promise<void> => {
+  try {
+    const history = await getHistory();
+    const newHistory = history.filter(item => item.id !== translationId);
+    await AsyncStorage.setItem(HISTORY_KEY, JSON.stringify(newHistory));
+  } catch (error) {
+    console.error("Error removing from history:", error);
+  }
+};
+
 export const getFavorites = async (): Promise<Translation[]> => {
   try {
     const favorites = await AsyncStorage.getItem(FAVORITES_KEY);
@@ -64,4 +74,3 @@ export const removeFromFavorites = async (translationId: string): Promise<void> 
     console.error("Error removing from favorites:", error);
   }
 };
-

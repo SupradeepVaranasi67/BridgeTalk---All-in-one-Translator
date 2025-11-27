@@ -1,23 +1,23 @@
 
+import { FontAwesome } from "@expo/vector-icons";
+import { Picker } from "@react-native-picker/picker";
 import { useEffect, useState } from "react";
 import {
-  StyleSheet,
-  ActivityIndicator,
-  TouchableOpacity,
-  ScrollView,
-  Alert,
-  TextInput,
-  useWindowDimensions,
-  View,
-  Platform,
+    ActivityIndicator,
+    ScrollView,
+    StyleSheet,
+    TextInput,
+    TouchableOpacity,
+    useWindowDimensions,
+    View
 } from "react-native";
-import { Picker } from "@react-native-picker/picker";
-import { translateText, getSupportedLanguages } from "./services/engines/google";
-import { addToHistory, addToFavorites, Translation } from "./services/storage";
-import { FontAwesome } from "@expo/vector-icons";
-import { ThemedView } from "./components/themed-view";
 import { ThemedText } from "./components/themed-text";
+import { ThemedView } from "./components/themed-view";
 import { useThemeColor } from "./hooks/use-theme-color";
+import { getSupportedLanguages, translateText } from "./services/engines/google";
+import { addToFavorites, addToHistory, Translation } from "./services/storage";
+
+import { useThemedAlert } from "./hooks/use-themed-alert";
 
 export default function TextTranslateScreen() {
   const { width } = useWindowDimensions();
@@ -37,6 +37,8 @@ export default function TextTranslateScreen() {
   const primaryColor = useThemeColor({}, 'primary');
   const inputBackgroundColor = useThemeColor({}, 'input');
   const cardColor = useThemeColor({}, 'card');
+
+  const { showAlert, themedAlertElement } = useThemedAlert();
 
   useEffect(() => {
     async function loadLanguages() {
@@ -71,7 +73,7 @@ export default function TextTranslateScreen() {
       await addToHistory(newTranslation);
     } catch (err: any) {
       console.error(err);
-      Alert.alert("Error", "Translation failed. Please try again.");
+      showAlert("Error", "Translation failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -81,7 +83,7 @@ export default function TextTranslateScreen() {
     if (!currentTranslation) return;
     await addToFavorites(currentTranslation);
     setIsFavorited(true);
-    Alert.alert("Success", "Added to favorites!");
+    showAlert("Success", "Added to favorites!");
   }
 
   if (langLoading) {
@@ -96,24 +98,34 @@ export default function TextTranslateScreen() {
   const inputSection = (
     <View style={styles.inputSection}>
       <View style={styles.pickerContainer}>
-        <View style={styles.pickerWrapper}>
+        <View style={[styles.pickerWrapper, { backgroundColor: inputBackgroundColor, overflow: 'hidden' }]}>
           <ThemedText style={styles.label}>From:</ThemedText>
-          <Picker selectedValue={sourceLang} onValueChange={(val) => setSourceLang(val)} style={[styles.picker, { backgroundColor: inputBackgroundColor, color: textColor }]}>
-            <Picker.Item label="Auto Detect" value="auto" />
+          <Picker
+            selectedValue={sourceLang}
+            onValueChange={(val) => setSourceLang(val)}
+            style={[styles.picker, { backgroundColor: 'transparent', color: textColor }]}
+            dropdownIconColor={textColor}
+          >
+            <Picker.Item label="Auto Detect" value="auto" color={textColor} />
             {languages.map((lang) => (
-              <Picker.Item key={lang.language} label={lang.name} value={lang.language} />
+              <Picker.Item key={lang.language} label={lang.name} value={lang.language} color={textColor} />
             ))}
           </Picker>
         </View>
-        <View style={styles.pickerWrapper}>
+        <View style={[styles.pickerWrapper, { backgroundColor: inputBackgroundColor, overflow: 'hidden' }]}>
           <ThemedText style={styles.label}>To:</ThemedText>
-          <Picker selectedValue={targetLang} onValueChange={(val) => setTargetLang(val)} style={[styles.picker, { backgroundColor: inputBackgroundColor, color: textColor }]}>
+          <Picker
+            selectedValue={targetLang}
+            onValueChange={(val) => setTargetLang(val)}
+            style={[styles.picker, { backgroundColor: 'transparent', color: textColor }]}
+            dropdownIconColor={textColor}
+          >
             {languages.map((lang) => (
-              <Picker.Item key={lang.language} label={lang.name} value={lang.language} />
+              <Picker.Item key={lang.language} label={lang.name} value={lang.language} color={textColor} />
             ))}
           </Picker>
         </View>
- 10=      </View>
+      </View>
       <TextInput style={[styles.input, { backgroundColor: inputBackgroundColor, color: textColor }]} placeholder="Enter text" placeholderTextColor="#888" value={input} onChangeText={setInput} multiline />
       <TouchableOpacity style={[styles.translateButton, { backgroundColor: primaryColor }]} onPress={handleTranslate} disabled={loading}>
         {loading ? <ActivityIndicator color="#fff" /> : <ThemedText style={styles.translateButtonText}>Translate</ThemedText>}
@@ -131,6 +143,7 @@ export default function TextTranslateScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      {themedAlertElement}
       {isWideScreen ? (
         <View style={styles.horizontalContainer}>
           <View style={styles.column}>{inputSection}</View>

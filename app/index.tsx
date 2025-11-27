@@ -1,4 +1,3 @@
-
 import { FontAwesome5 } from '@expo/vector-icons';
 import { router } from "expo-router";
 import { FlatList, Platform, StyleSheet, TouchableOpacity, useWindowDimensions, View } from "react-native";
@@ -6,22 +5,27 @@ import { ThemedText } from './components/themed-text';
 import { ThemedView } from './components/themed-view';
 import { useThemeColor } from './hooks/use-theme-color';
 
-const features: { name: string; icon: string; route: "/text" | "/ocr" | "/translator" | "/settings" | "/speech" }[] = [
+const features: { name: string; icon: string; route: "/text" | "/ocr" | "/settings" | "/speech" }[] = [
   { name: "Text Translation", icon: "language", route: "/text" },
   { name: "Speech Translation", icon: "microphone", route: "/speech" },
   { name: "OCR Translation", icon: "camera", route: "/ocr" },
-  { name: "My Translations", icon: "history", route: "/translator" },
-  { name: "Settings", icon: "cog", route: "/settings" },
 ];
+
+import { useTheme } from './context/ThemeContext';
 
 export default function Index() {
   const { width } = useWindowDimensions();
   const iconColor = useThemeColor({}, 'text'); // Use main text color for high contrast
+  const { theme, setTheme } = useTheme();
+
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+  };
 
   const numColumns = width > 768 ? 4 : 2;
   const cardWidth = width > 768 ? 200 : (width / 2) - 30;
 
-  const renderItem = ({ item }: { item: { name: string; icon: string; route: "/text" | "/ocr" | "/translator" | "/settings" | "/speech" } }) => (
+  const renderItem = ({ item }: { item: { name: string; icon: string; route: "/text" | "/ocr" | "/settings" | "/speech" } }) => (
     <TouchableOpacity onPress={() => router.push(item.route)}>
       <ThemedView colorName="card" style={[styles.card, { width: cardWidth }]}> 
         <FontAwesome5 name={item.icon as any} size={40} color={iconColor} />
@@ -32,7 +36,20 @@ export default function Index() {
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedText type="title" style={styles.title}>BridgeTalk</ThemedText>
+      <View style={styles.header}>
+        <ThemedText type="title" style={styles.title}>BridgeTalk</ThemedText>
+        <View style={styles.headerButtons}>
+          <TouchableOpacity onPress={toggleTheme} style={styles.iconButton}>
+            <FontAwesome5 name={theme === 'dark' ? "sun" : "moon"} size={24} color={iconColor} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push("/favorites")} style={styles.iconButton}>
+            <FontAwesome5 name="heart" size={24} color={iconColor} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push("/translator")} style={styles.iconButton}>
+            <FontAwesome5 name="history" size={24} color={iconColor} />
+          </TouchableOpacity>
+        </View>
+      </View>
       <View style={styles.listContainer}>
         <FlatList
           data={features}
@@ -49,7 +66,26 @@ export default function Index() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, alignItems: 'center', paddingTop: 50 },
-  title: { marginBottom: 30 },
+  header: {
+    width: '100%',
+    maxWidth: 1000,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 30,
+    position: 'relative',
+  },
+  title: { },
+  headerButtons: {
+    position: 'absolute',
+    right: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconButton: {
+    padding: 10,
+    marginLeft: 5,
+  },
   listContainer: {
     width: '100%',
     maxWidth: 1000,

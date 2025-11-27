@@ -1,7 +1,6 @@
-
 import React from 'react';
-import TranslatorNavigator from './navigation/TranslatorNavigator';
+import TranslationHistoryScreen from './history';
 
 export default function TranslatorScreen() {
-  return <TranslatorNavigator />;
+  return <TranslationHistoryScreen />;
 }

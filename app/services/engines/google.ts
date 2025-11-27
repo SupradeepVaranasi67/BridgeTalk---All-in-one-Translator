@@ -1,17 +1,19 @@
 // app/services/engines/google.ts
+import { Config } from "../../constants/Config";
+
 export async function translateText(
   text: string,
   target: string = "en",
   source: string = "auto"
 ) {
-  const url = "https://google-translate113.p.rapidapi.com/api/v1/translator/text";
+  const url = `${Config.RAPIDAPI_URL}/text`;
 
   const res = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-rapidapi-key": "2313984740msh78647075e369a68p14bcb9jsnf356f69bca55", // your key
-      "x-rapidapi-host": "google-translate113.p.rapidapi.com",
+      "x-rapidapi-key": Config.RAPIDAPI_KEY,
+      "x-rapidapi-host": Config.RAPIDAPI_HOST,
     },
     body: JSON.stringify({
       from: source,
@@ -38,13 +40,13 @@ export async function translateText(
 
 
 export async function getSupportedLanguages() {
-  const url = "https://google-translate113.p.rapidapi.com/api/v1/translator/support-languages";
+  const url = `${Config.RAPIDAPI_URL}/support-languages`;
 
   const res = await fetch(url, {
     method: "GET",
     headers: {
-      "x-rapidapi-key": "2313984740msh78647075e369a68p14bcb9jsnf356f69bca55",
-      "x-rapidapi-host": "google-translate113.p.rapidapi.com",
+      "x-rapidapi-key": Config.RAPIDAPI_KEY,
+      "x-rapidapi-host": Config.RAPIDAPI_HOST,
     },
   });
 

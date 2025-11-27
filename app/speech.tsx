@@ -1,28 +1,28 @@
 import { FontAwesome } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import Voice, { SpeechResultsEvent } from "@react-native-voice/voice";
-import * as Speech from "expo-speech";
-import { useEffect, useRef, useState } from "react";
+import { Audio } from "expo-av";
+import { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    TouchableOpacity,
-    useWindowDimensions,
-    View,
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  useWindowDimensions,
+  View
 } from "react-native";
 
+import * as TTS from "../utils/tts";
 import { ThemedText } from "./components/themed-text";
 import { ThemedView } from "./components/themed-view";
 import { useThemeColor } from "./hooks/use-theme-color";
 import { getSupportedLanguages, translateText } from "./services/engines/google";
 
+import { useThemedAlert } from "./hooks/use-themed-alert";
+
 export default function SpeechTranslateScreen() {
   const { width } = useWindowDimensions();
   const isWideScreen = width > 768;
-  const isWeb = Platform.OS === 'web';
 
   const [isRecording, setIsRecording] = useState(false);
   const [recognizedText, setRecognizedText] = useState("");
@@ -34,13 +34,12 @@ export default function SpeechTranslateScreen() {
   const [targetLang, setTargetLang] = useState("es");
   const [languages, setLanguages] = useState<{ language: string; name: string }[]>([]);
 
-  // Web Speech API ref
-  const recognitionRef = useRef<any>(null);
-
   const textColor = useThemeColor({}, 'text');
   const primaryColor = useThemeColor({}, 'primary');
   const inputBackgroundColor = useThemeColor({}, 'input');
   const cardColor = useThemeColor({}, 'card');
+
+  const { showAlert, themedAlertElement } = useThemedAlert();
 
   useEffect(() => {
     async function loadLanguages() {
@@ -55,50 +54,32 @@ export default function SpeechTranslateScreen() {
     }
     loadLanguages();
 
-    if (!isWeb) {
-      // Native Voice setup
-      Voice.onSpeechStart = () => setIsRecording(true);
-      Voice.onSpeechEnd = () => setIsRecording(false);
-      Voice.onSpeechResults = onSpeechResults;
-      Voice.onSpeechError = (e) => {
-        console.error(e);
-        setIsRecording(false);
-      };
-
-      return () => {
-        Voice.destroy().then(Voice.removeAllListeners);
-      };
-    } else {
-      // Web Speech API setup
-      if (typeof window !== 'undefined' && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-        recognitionRef.current = new SpeechRecognition();
-        recognitionRef.current.continuous = false;
-        recognitionRef.current.interimResults = true;
-        recognitionRef.current.lang = sourceLang;
-
-        recognitionRef.current.onstart = () => setIsRecording(true);
-        recognitionRef.current.onend = () => setIsRecording(false);
-        recognitionRef.current.onresult = (event: any) => {
-          const transcript = event.results[0][0].transcript;
-          setRecognizedText(transcript);
-        };
-        recognitionRef.current.onerror = (event: any) => {
-          console.error("Web Speech API error", event.error);
-          setIsRecording(false);
-        };
+    // Native Voice setup
+    Voice.onSpeechStart = () => {
+      console.log("Speech started");
+      setIsRecording(true);
+    };
+    Voice.onSpeechEnd = () => {
+      console.log("Speech ended");
+      setIsRecording(false);
+    };
+    Voice.onSpeechResults = onSpeechResults;
+    Voice.onSpeechError = (e) => {
+      console.error("Speech error:", e);
+      setIsRecording(false);
+      // Optional: Show alert on error, but be careful not to spam if it's just no speech detected
+      if (e.error?.message && !e.error.message.includes('No match')) {
+         // showAlert("Speech Error", e.error.message); 
       }
-    }
-  }, [isWeb]); 
+    };
 
-  // Update web recognition language when sourceLang changes
-  useEffect(() => {
-    if (isWeb && recognitionRef.current) {
-      recognitionRef.current.lang = sourceLang;
-    }
-  }, [sourceLang, isWeb]);
+    return () => {
+      Voice.destroy().then(Voice.removeAllListeners);
+    };
+  }, []);
 
   const onSpeechResults = (e: SpeechResultsEvent) => {
+    console.log("Native Speech results:", e);
     if (e.value && e.value.length > 0) {
       setRecognizedText(e.value[0]);
     }
@@ -108,22 +89,23 @@ export default function SpeechTranslateScreen() {
     setRecognizedText("");
     setTranslatedText("");
     try {
-      if (isWeb) {
-      } else {
-        await Voice.start(sourceLang);
+      const { status } = await Audio.requestPermissionsAsync();
+      if (status !== "granted") {
+        showAlert("Permission Required", "Microphone permission is required for speech recognition.");
+        return;
       }
+      // Ensure any previous session is destroyed
+      await Voice.destroy();
+      await Voice.start(sourceLang);
     } catch (e) {
       console.error(e);
+      showAlert("Error", "Failed to start recording.");
     }
   };
 
   const handleStopRecording = async () => {
     try {
-      if (isWeb) {
-        recognitionRef.current?.stop();
-      } else {
-        await Voice.stop();
-      }
+      await Voice.stop();
     } catch (e) {
       console.error(e);
     }
@@ -140,14 +122,14 @@ export default function SpeechTranslateScreen() {
     if (!recognizedText.trim()) return;
     setLoading(true);
     try {
-      const sourceIso = sourceLang.split('-')[0]; 
+      const sourceIso = sourceLang.split('-')[0];
       const result = await translateText(recognizedText, targetLang, sourceIso);
       setTranslatedText(result);
-      
-      Speech.speak(result, { language: targetLang });
+
+      TTS.speak(result, targetLang);
     } catch (err) {
       console.error(err);
-      Alert.alert("Error", "Translation failed.");
+      showAlert("Error", "Translation failed.");
     } finally {
       setLoading(false);
     }
@@ -155,7 +137,7 @@ export default function SpeechTranslateScreen() {
 
   const handleSpeak = () => {
     if (translatedText) {
-      Speech.speak(translatedText, { language: targetLang });
+      TTS.speak(translatedText, targetLang);
     }
   };
 
@@ -170,20 +152,30 @@ export default function SpeechTranslateScreen() {
 
   const controlsSection = (
     <View style={styles.controlsSection}>
-       <View style={styles.pickerContainer}>
-        <View style={styles.pickerWrapper}>
+      <View style={styles.pickerContainer}>
+        <View style={[styles.pickerWrapper, { backgroundColor: inputBackgroundColor, overflow: 'hidden' }]}>
           <ThemedText style={styles.label}>Speak in:</ThemedText>
-          <Picker selectedValue={sourceLang} onValueChange={(val) => setSourceLang(val)} style={[styles.picker, { backgroundColor: inputBackgroundColor, color: textColor }]}>
-             {languages.map((lang) => (
-              <Picker.Item key={lang.language} label={lang.name} value={lang.language} />
+          <Picker
+            selectedValue={sourceLang}
+            onValueChange={(val) => setSourceLang(val)}
+            style={[styles.picker, { backgroundColor: 'transparent', color: textColor }]}
+            dropdownIconColor={textColor}
+          >
+            {languages.map((lang) => (
+              <Picker.Item key={lang.language} label={lang.name} value={lang.language} color={textColor} />
             ))}
           </Picker>
         </View>
-        <View style={styles.pickerWrapper}>
+        <View style={[styles.pickerWrapper, { backgroundColor: inputBackgroundColor, overflow: 'hidden' }]}>
           <ThemedText style={styles.label}>Translate to:</ThemedText>
-          <Picker selectedValue={targetLang} onValueChange={(val) => setTargetLang(val)} style={[styles.picker, { backgroundColor: inputBackgroundColor, color: textColor }]}>
+          <Picker
+            selectedValue={targetLang}
+            onValueChange={(val) => setTargetLang(val)}
+            style={[styles.picker, { backgroundColor: 'transparent', color: textColor }]}
+            dropdownIconColor={textColor}
+          >
             {languages.map((lang) => (
-              <Picker.Item key={lang.language} label={lang.name} value={lang.language} />
+              <Picker.Item key={lang.language} label={lang.name} value={lang.language} color={textColor} />
             ))}
           </Picker>
         </View>
@@ -226,6 +218,7 @@ export default function SpeechTranslateScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      {themedAlertElement}
       {isWideScreen ? (
         <View style={styles.horizontalContainer}>
           <View style={styles.column}>{controlsSection}</View>

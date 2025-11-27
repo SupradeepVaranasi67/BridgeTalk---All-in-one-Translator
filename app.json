@@ -32,24 +32,44 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router",
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
-          "dark": {
-            "backgroundColor": "#000000"
-          }
+  "expo-router",
+  "./plugins/withJetifier",
+  [
+    "expo-splash-screen",
+    {
+      "image": "./assets/images/splash-icon.png",
+      "imageWidth": 200,
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff",
+      "dark": {
+        "backgroundColor": "#000000"
+      }
+    }
+  ],
+  "expo-web-browser",
+  [
+    "expo-build-properties",
+    {
+      "android": {
+        "kotlinVersion": "2.0.21",
+        "packagingOptions": {
+          "pickFirst": ["**/libc++_shared.so"]
         }
-      ],
-      "expo-web-browser"
-    ],
+      }
+    }
+  ]
+]
+,
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "dd4f4645-c161-46fa-9869-c54dcd7f470b"
+      }
+    },
+    "owner": "toyota-supra"
   }
 }
