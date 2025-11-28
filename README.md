@@ -1,50 +1,104 @@
-# Welcome to your Expo app 👋
+# 🌉 BridgeTalk - All-in-One Translator
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+BridgeTalk is a powerful and intuitive translation application designed to bridge communication gaps. It offers seamless translation capabilities across Text, Speech, and Images (OCR), making it the perfect companion for travelers and language learners.
 
-## Get started
+## ✨ Features
 
-1. Install dependencies
+### 📝 Text Translator
+-   **Instant Translation**: Translate text between multiple languages instantly.
+-   **Auto-Detection**: Automatically detects the source language.
+-   **Favorites**: Save important translations for quick access.
+-   **History**: Keep track of your translation history.
 
-   ```bash
-   npm install
-   ```
+### 🗣️ Speech Translator
+-   **Speech-to-Speech**: Speak in your native language and hear the translation in the target language.
+-   **Conversation Mode**: Facilitate two-way conversations with ease.
+-   **Indian Language Support**: Specialized support for Indian languages.
 
-2. Start the app
+### 📷 OCR (Image) Translator
+-   **Image Recognition**: Pick an image from your gallery or take a photo to recognize text.
+-   **Instant Translation**: Translate recognized text immediately.
+-   **Read Aloud**: Listen to the translated text with a single tap.
 
-   ```bash
-   npx expo start
-   ```
+### 🧠 Recommendation System
+-   **Smart Suggestions**: Get context-aware suggestions for quick translations.
+-   **Travel Assistant**: Helpful phrases and questions for tourists based on location (State/Region).
 
-In the output, you'll find options to open the app in a
+### 🎨 Modern UI/UX
+-   **Dark Mode Support**: Fully optimized for both Light and Dark modes.
+-   **Responsive Design**: Works seamlessly on different screen sizes.
+-   **Intuitive Navigation**: Easy-to-use tab-based navigation.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## 🛠️ Tech Stack
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+-   **Framework**: [React Native](https://reactnative.dev/) with [Expo](https://expo.dev/)
+-   **Navigation**: [Expo Router](https://docs.expo.dev/router/introduction/)
+-   **Styling**: StyleSheet (Native) with Theming support
+-   **APIs**:
+    -   Google Cloud Translation API
+    -   Google Cloud Vision API (for OCR)
+-   **Libraries**:
+    -   `expo-speech` (Text-to-Speech)
+    -   `expo-image-picker` (Camera & Gallery)
+    -   `@react-native-async-storage/async-storage` (Local Storage)
+    -   `@react-native-picker/picker` (Dropdowns)
 
-## Get a fresh project
+## 🚀 Getting Started
 
-When you're ready, run:
+### Prerequisites
 
-```bash
-npm run reset-project
-```
+-   [Node.js](https://nodejs.org/) (LTS version recommended)
+-   [Expo CLI](https://docs.expo.dev/get-started/installation/) (`npm install -g expo-cli`)
+-   iOS Simulator (Mac) or Android Emulator (Windows/Mac/Linux) or a physical device with Expo Go app.
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### Installation
 
-## Learn more
+1.  **Clone the repository**
+    ```bash
+    git clone https://github.com/yourusername/BridgeTalk.git
+    cd BridgeTalk
+    ```
 
-To learn more about developing your project with Expo, look at the following resources:
+2.  **Install dependencies**
+    ```bash
+    npm install
+    # or
+    yarn install
+    ```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+3.  **Configure API Keys**
+    -   Open `app/constants/Config.ts` (or create a `.env` file if configured).
+    -   Add your Google Cloud API Key:
+        ```typescript
+        export default {
+          GOOGLE_API_KEY: "YOUR_API_KEY_HERE",
+        };
+        ```
 
-## Join the community
+### Running the App
 
-Join our community of developers creating universal apps.
+1.  **Start the development server**
+    ```bash
+    npx expo start
+    ```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+2.  **Run on Device/Emulator**
+    -   **Android**: Press `a` in the terminal (requires Android Studio/Emulator).
+    -   **iOS**: Press `i` in the terminal (requires Xcode/Simulator - Mac only).
+    -   **Physical Device**: Scan the QR code with the Expo Go app (Android) or Camera app (iOS).
+
+## 📱 Usage
+
+1.  **Home Screen**: Choose between Text, Speech, or Image translation.
+2.  **Text Mode**: Type text, select languages, and hit Translate.
+3.  **Speech Mode**: Tap the microphone to speak.
+4.  **OCR Mode**: Select an image or take a photo to extract and translate text. Use the volume icon to hear the result.
+5.  **History/Favorites**: Access your past translations from the top-right menu.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📄 License
+
+This project is licensed under the MIT License.
